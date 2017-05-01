@@ -16,7 +16,7 @@ href="https://hyper.wickstrom.tech">Hyper</a></em>
 <hr>
 
 The middleware abstraction in Hyper can be too low-level for regular
-application handlers. Hyperdrive provides a simpler alternativ, inspired by
+application handlers. Hyperdrive provides a simpler alternative, inspired by
 Clojure's [Ring](https://github.com/ring-clojure/ring).
 
 ## Examples and Documentation
