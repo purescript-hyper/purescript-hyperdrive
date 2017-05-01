@@ -2,24 +2,19 @@ module Hyper.Drive ( Request
                    , Response
                    , Application
                    , hyperdrive
-                   , response
-                   , status
-                   , header
-                   , body
                    ) where
 
 import Prelude
 import Data.StrMap as StrMap
 import Control.IxMonad (ibind)
 import Data.StrMap (StrMap)
-import Data.Tuple (Tuple(..), curry)
+import Data.Tuple (curry)
 import Hyper.Conn (Conn)
-import Hyper.Header (Header)
 import Hyper.Middleware (Middleware, lift')
 import Hyper.Middleware.Class (getConn)
 import Hyper.Request (class Request, getRequestData)
 import Hyper.Response (class Response, class ResponseWritable, ResponseEnded, StatusLineOpen, closeHeaders, end, send, toResponse, writeHeader, writeStatus)
-import Hyper.Status (Status, statusOK)
+import Hyper.Status (Status)
 
 type Request components =
   { headers :: StrMap String
@@ -61,37 +56,3 @@ hyperdrive app = do
   where
     bind = ibind
     discard = ibind
-
-response
-  :: forall body
-   .  body
-   -> Response body
-response b =
-  { status: statusOK
-  , headers: StrMap.empty
-  , body: b
-  }
-
-status
-  :: forall body
-   . Status
-  -> Response body
-  -> Response body
-status status' res =
-  res { status = status' }
-
-header
-  :: forall body
-   . Header
-  -> Response body
-  -> Response body
-header (Tuple k v) res =
-  res { headers = StrMap.insert k v res.headers }
-
-body
-  :: forall a body
-   . body
-  -> Response a
-  -> Response body
-body b res =
-  res { body = b }
