@@ -5,13 +5,14 @@ module Hyper.Drive ( Request
                    , response
                    , status
                    , header
+                   , body
                    ) where
 
 import Prelude
 import Data.StrMap as StrMap
 import Control.IxMonad (ibind)
 import Data.StrMap (StrMap)
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), curry)
 import Hyper.Conn (Conn)
 import Hyper.Header (Header)
 import Hyper.Middleware (Middleware, lift')
@@ -53,25 +54,23 @@ hyperdrive app = do
                     , components: components
                     })
   writeStatus res.status
-  StrMap.foldM writeHeader' unit res.headers
+  StrMap.foldM (const (curry writeHeader)) unit res.headers
   closeHeaders
-  body <- toResponse res.body
-  send body
+  toResponse res.body >>= send
   end
   where
     bind = ibind
     discard = ibind
-    writeHeader' _ k v =
-      writeHeader (Tuple k v)
 
 response
   :: forall body
    .  body
    -> Response body
-response body = { status: statusOK
-                , headers: StrMap.empty
-                , body: body
-                }
+response b =
+  { status: statusOK
+  , headers: StrMap.empty
+  , body: b
+  }
 
 status
   :: forall body
@@ -88,3 +87,11 @@ header
   -> Response body
 header (Tuple k v) res =
   res { headers = StrMap.insert k v res.headers }
+
+body
+  :: forall a body
+   . body
+  -> Response a
+  -> Response body
+body b res =
+  res { body = b }
