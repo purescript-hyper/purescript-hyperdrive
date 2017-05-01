@@ -5,7 +5,7 @@ import Data.StrMap as StrMap
 import Data.Maybe (Maybe(..))
 import Data.Monoid (mempty)
 import Data.Tuple (Tuple(..))
-import Hyper.Drive (hyperdrive)
+import Hyper.Drive (Response, hyperdrive)
 import Hyper.Middleware (evalMiddleware)
 import Hyper.Status (statusNotFound, statusOK)
 import Hyper.Test.TestServer (TestRequest(..), TestResponse(..), defaultRequest, testHeaders, testServer, testStatus, testStringBody)
@@ -26,10 +26,10 @@ spec = do
     describe "hyperdrive" do
 
       it "responds with the supplied status" do
-        conn <- runHyperdrive (const $ pure { status: statusNotFound
-                                            , headers: mempty
-                                            , body: mempty
-                                            })
+        conn <- runHyperdrive (const $ pure $ Response { status: statusNotFound
+                                                       , headers: mempty
+                                                       , body: mempty
+                                                       })
         testStatus conn `shouldEqual` Just statusNotFound
 
       it "responds with the supplied headers" do

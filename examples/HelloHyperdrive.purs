@@ -4,16 +4,15 @@ import Prelude
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Data.Tuple (Tuple(..))
-import Hyper.Drive (Application, hyperdrive)
-import Hyper.Drive.Response (header, response, status)
+import Hyper.Drive (Application, Request, Response, header, hyperdrive, response, status)
 import Hyper.Node.Server (defaultOptionsWithLogging, runServer)
 import Hyper.Status (statusOK)
 import Node.HTTP (HTTP)
 
 app
-  :: forall m
+  :: forall m body
    . Applicative m
-  => Application m {} String
+  => Application m (Request body {}) (Response String)
 app _ =
   response "Hello Hyperdrive!"
   # status statusOK
