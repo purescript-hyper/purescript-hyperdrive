@@ -1,31 +1,38 @@
-module Hyper.Drive ( Request
-                   , Response
-                   , Application
-                   , hyperdrive
+module Hyper.Drive ( class Request
+                   , requestHeaders
+                   , requestBody
                    , response
                    , status
                    , header
                    , body
+                   , Application
+                   , hyperdrive
                    ) where
 
 import Prelude
 import Data.StrMap as StrMap
+import Hyper.Request as Request
+import Hyper.Response as Response
 import Control.IxMonad (ibind)
 import Data.StrMap (StrMap)
 import Data.Tuple (Tuple(..), curry)
 import Hyper.Conn (Conn)
 import Hyper.Header (Header)
-import Hyper.Middleware (Middleware, lift')
+import Hyper.Middleware (Middleware, lift', runMiddleware)
 import Hyper.Middleware.Class (getConn)
-import Hyper.Request (class Request, getRequestData)
-import Hyper.Response (class Response, class ResponseWritable, ResponseEnded, StatusLineOpen, closeHeaders, end, send, toResponse, writeHeader, writeStatus)
 import Hyper.Status (Status, statusOK)
 
-newtype Request body components =
-  Request { headers :: StrMap String
-          , body :: body
-          , components :: components
-          }
+class Request r m body | r -> m, r -> body where
+  requestHeaders :: r -> StrMap String
+  requestBody :: r -> m body
+
+data RequestWithHeaders req =
+  RequestWithHeaders req (StrMap String)
+
+instance requestRequest :: Request (RequestWithHeaders r) m body where
+  requestHeaders (RequestWithHeaders _ hs) = hs
+  requestBody (RequestWithHeaders r _) =
+    runMiddleware (Request.readBody r)
 
 newtype Response body =
   Response { status :: Status
@@ -36,30 +43,28 @@ newtype Response body =
 type Application m req res = req -> m res
 
 hyperdrive
-  :: forall m req res r components resBody
+  :: forall m hreq hres req res
    . Monad m
   => Request req m
-  => Response res m r
-  => ResponseWritable r m resBody
-  => Application m (Request Unit components) (Response resBody)
+  => Response.Response res m r
+  => Response.ResponseWritable r m resBody
+  => Application m req res
   -> Middleware
      m
-     (Conn req (res StatusLineOpen) components)
-     (Conn req (res ResponseEnded) components)
+     (Conn hreq (hres Response.StatusLineOpen) components)
+     (Conn hreq (hres Response.ResponseEnded) components)
      Unit
 hyperdrive app = do
-  { headers } <- getRequestData
+  conn <- getConn
+  { headers } <- Request.getRequestData
   components <- _.components <$> getConn
-  let req = Request { headers: headers
-                    , body: unit
-                    , components: components
-                    }
-  Response res <- lift' (app req)
-  writeStatus res.status
-  StrMap.foldM (const (curry writeHeader)) unit res.headers
-  closeHeaders
-  toResponse res.body >>= send
-  end
+  let req = RequestWithHeaders conn.request headers
+  res <- lift' (app req)
+  Response.writeStatus res.status
+  StrMap.foldM (const (curry Response.writeHeader)) unit res.headers
+  Response.closeHeaders
+  Response.toResponse res.body >>= Response.send
+  Response.end
   where
     bind = ibind
     discard = ibind
