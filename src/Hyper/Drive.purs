@@ -11,6 +11,8 @@ module Hyper.Drive ( Request(..)
 import Prelude
 import Data.StrMap as StrMap
 import Control.IxMonad (ibind)
+import Data.Either (Either)
+import Data.HTTP.Method (CustomMethod, Method)
 import Data.Newtype (class Newtype)
 import Data.StrMap (StrMap)
 import Data.Tuple (Tuple(..), curry)
@@ -23,7 +25,9 @@ import Hyper.Response (class Response, class ResponseWritable, ResponseEnded, St
 import Hyper.Status (Status, statusOK)
 
 newtype Request body components =
-  Request { headers :: StrMap String
+  Request { method :: Either Method CustomMethod
+          , url :: String
+          , headers :: StrMap String
           , body :: body
           , components :: components
           }
@@ -53,11 +57,13 @@ hyperdrive
      (Conn req (res ResponseEnded) components)
      Unit
 hyperdrive app = do
-  { headers: reqHeaders } <- getRequestData
-  reqBody <- readBody
+  { method, url, headers } <- getRequestData
+  body' <- readBody
   components <- _.components <$> getConn
-  let req = Request { headers: reqHeaders
-                    , body: reqBody
+  let req = Request { method
+                    , url
+                    , headers
+                    , body: body'
                     , components: components
                     }
   Response res <- lift' (app req)
