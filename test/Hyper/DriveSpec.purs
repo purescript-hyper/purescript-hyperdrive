@@ -4,6 +4,7 @@ import Prelude
 import Data.StrMap as StrMap
 import Data.Maybe (Maybe(..))
 import Data.Monoid (mempty)
+import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
 import Hyper.Drive (Response(..), hyperdrive)
 import Hyper.Middleware (evalMiddleware)
@@ -15,7 +16,7 @@ import Test.Spec.Assertions (shouldContain, shouldEqual)
 spec :: Spec () Unit
 spec = do
   let runHyperdrive app =
-        { request: TestRequest defaultRequest
+        { request: TestRequest $ defaultRequest { body = "Bonjour" }
         , response: TestResponse Nothing [] []
         , components: {}
         }
@@ -45,3 +46,10 @@ spec = do
                                                        , body: "Hello"
                                                        })
         testStringBody conn `shouldEqual` "Hello"
+
+      it "knows the request body" do
+        conn <- runHyperdrive (\req -> pure $ Response { status: statusOK
+                                                       , headers: mempty
+                                                       , body: (unwrap req).body
+                                                       })
+        testStringBody conn `shouldEqual` "Bonjour"

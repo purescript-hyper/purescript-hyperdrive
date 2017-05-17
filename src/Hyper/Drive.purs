@@ -11,13 +11,14 @@ module Hyper.Drive ( Request(..)
 import Prelude
 import Data.StrMap as StrMap
 import Control.IxMonad (ibind)
+import Data.Newtype (class Newtype)
 import Data.StrMap (StrMap)
 import Data.Tuple (Tuple(..), curry)
 import Hyper.Conn (Conn)
 import Hyper.Header (Header)
 import Hyper.Middleware (Middleware, lift')
 import Hyper.Middleware.Class (getConn)
-import Hyper.Request (class Request, getRequestData)
+import Hyper.Request (class ReadableBody, class Request, getRequestData, readBody)
 import Hyper.Response (class Response, class ResponseWritable, ResponseEnded, StatusLineOpen, closeHeaders, end, send, toResponse, writeHeader, writeStatus)
 import Hyper.Status (Status, statusOK)
 
@@ -35,23 +36,28 @@ newtype Response body =
 
 type Application m req res = req -> m res
 
+derive instance newtypeRequest :: Newtype (Request body components) _
+derive instance newtypeResponse :: Newtype (Response body) _
+
 hyperdrive
-  :: forall m req res r components resBody
+  :: forall m req res r components reqBody resBody
    . Monad m
   => Request req m
   => Response res m r
+  => ReadableBody req m reqBody
   => ResponseWritable r m resBody
-  => Application m (Request Unit components) (Response resBody)
+  => Application m (Request reqBody components) (Response resBody)
   -> Middleware
      m
      (Conn req (res StatusLineOpen) components)
      (Conn req (res ResponseEnded) components)
      Unit
 hyperdrive app = do
-  { headers } <- getRequestData
+  { headers: reqHeaders } <- getRequestData
+  reqBody <- readBody
   components <- _.components <$> getConn
-  let req = Request { headers: headers
-                    , body: unit
+  let req = Request { headers: reqHeaders
+                    , body: reqBody
                     , components: components
                     }
   Response res <- lift' (app req)
