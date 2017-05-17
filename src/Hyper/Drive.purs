@@ -1,5 +1,5 @@
-module Hyper.Drive ( Request
-                   , Response
+module Hyper.Drive ( Request(..)
+                   , Response(..)
                    , Application
                    , hyperdrive
                    , response
