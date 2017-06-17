@@ -11,6 +11,7 @@ module Hyper.Drive ( Request(..)
 import Prelude
 import Data.StrMap as StrMap
 import Control.IxMonad (ibind)
+import Data.Bifunctor (class Bifunctor)
 import Data.Either (Either)
 import Data.HTTP.Method (CustomMethod, Method)
 import Data.Newtype (class Newtype)
@@ -42,6 +43,15 @@ type Application m req res = req -> m res
 
 derive instance newtypeRequest :: Newtype (Request body components) _
 derive instance newtypeResponse :: Newtype (Response body) _
+
+derive instance functorRequest :: Functor (Request body)
+derive instance functorResponse :: Functor Response
+
+instance bifunctorRequest :: Bifunctor Request where
+  bimap l r (Request req) = Request $ req
+    { body = l req.body
+    , components = r req.components
+    }
 
 hyperdrive
   :: forall m req res r components reqBody resBody
