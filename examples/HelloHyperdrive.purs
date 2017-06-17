@@ -1,6 +1,7 @@
 module Examples.HelloHyperdrive where
 
 import Prelude
+import Control.Monad.Aff.AVar (AVAR)
 import Control.Monad.Eff (Eff)
 import Control.Monad.Eff.Console (CONSOLE)
 import Data.Tuple (Tuple(..))
@@ -19,5 +20,5 @@ app _ =
   # header (Tuple "X-Hello" "Hyperdrive")
   # pure
 
-main :: forall e. Eff (console :: CONSOLE, http :: HTTP | e) Unit
+main :: forall e. Eff (console :: CONSOLE, http :: HTTP, avar :: AVAR | e) Unit
 main = runServer defaultOptionsWithLogging {} (hyperdrive app)
