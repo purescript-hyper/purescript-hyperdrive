@@ -23,7 +23,7 @@ script:
 - if [[ "$TRAVIS_TAG" != "" ]]; then export VERSION=$TRAVIS_TAG; fi
 - travis_wait pulp build
 - travis_wait pulp test
-- travis_wait make examples docs-examples
+- travis_wait pulp build -I examples
 
 cache:
   directories:
