@@ -1,5 +1,10 @@
 {
   "name": "purescript-hyperdrive",
+  "license": "MPL-2.0",
+  "repository": {
+    "type": "git",
+    "url": "git://github.com/owickstrom/purescript-hyperdrive.git"
+  },
   "ignore": [
     "**/.*",
     "node_modules",
