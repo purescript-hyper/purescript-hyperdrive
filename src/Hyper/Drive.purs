@@ -9,14 +9,14 @@ module Hyper.Drive ( Request(..)
                    ) where
 
 import Prelude
-import Data.StrMap as StrMap
 import Control.IxMonad (ibind)
 import Data.Bifunctor (class Bifunctor)
 import Data.Either (Either)
 import Data.HTTP.Method (CustomMethod, Method)
 import Data.Newtype (class Newtype)
-import Data.StrMap (StrMap)
 import Data.Tuple (Tuple(..), curry)
+import Foreign.Object as Object
+import Foreign.Object (Object)
 import Hyper.Conn (Conn)
 import Hyper.Header (Header)
 import Hyper.Middleware (Middleware, lift')
@@ -28,14 +28,14 @@ import Hyper.Status (Status, statusOK)
 newtype Request body components =
   Request { method :: Either Method CustomMethod
           , url :: String
-          , headers :: StrMap String
+          , headers :: Object String
           , body :: body
           , components :: components
           }
 
 newtype Response body =
   Response { status :: Status
-           , headers :: StrMap String
+           , headers :: Object String
            , body :: body
            }
 
@@ -78,7 +78,7 @@ hyperdrive app = do
                     }
   Response res <- lift' (app req)
   writeStatus res.status
-  StrMap.foldM (const (curry writeHeader)) unit res.headers
+  Object.foldM (const (curry writeHeader)) unit res.headers
   closeHeaders
   toResponse res.body >>= send
   end
@@ -94,7 +94,7 @@ response
 response b =
   Response
   { status: statusOK
-  , headers: StrMap.empty
+  , headers: Object.empty
   , body: b
   }
 
@@ -112,7 +112,7 @@ header
   -> Response body
   -> Response body
 header (Tuple k v) (Response res) =
-  Response (res { headers = StrMap.insert k v res.headers })
+  Response (res { headers = Object.insert k v res.headers })
 
 body
   :: forall a body
