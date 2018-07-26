@@ -12,13 +12,11 @@
     "output"
   ],
   "dependencies": {
-    "purescript-prelude": "^3.0.0",
-    "purescript-console": "^3.0.0",
-    "purescript-hyper": "^0.7.3"
+    "purescript-hyper": "httsp://github.com/lambdaterms-forks/hyper.git#33edf95c4e1db5a6f798e66199fad9b5643e0064"
   },
   "devDependencies": {
-    "purescript-psci-support": "^3.0.0",
-    "purescript-spec": "^0.14.0",
-    "purescript-spec-discovery": "^0.6.0"
+    "purescript-psci-support": "^4.0.0",
+    "purescript-spec": "^3.0.0",
+    "purescript-spec-discovery": "https://github.com/owickstrom/purescript-spec-discovery.git#a1a8dfd5fadb3f00199d68d20af4bbf56a048c6e"
   }
 }

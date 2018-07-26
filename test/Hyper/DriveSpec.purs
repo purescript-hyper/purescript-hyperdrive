@@ -1,11 +1,11 @@
 module Hyper.DriveSpec where
 
 import Prelude
-import Data.StrMap as StrMap
 import Data.Maybe (Maybe(..))
 import Data.Monoid (mempty)
 import Data.Newtype (unwrap)
 import Data.Tuple (Tuple(..))
+import Foreign.Object as Object
 import Hyper.Drive (Response(..), hyperdrive)
 import Hyper.Middleware (evalMiddleware)
 import Hyper.Status (statusNotFound, statusOK)
@@ -13,7 +13,7 @@ import Hyper.Test.TestServer (TestRequest(..), TestResponse(..), defaultRequest,
 import Test.Spec (Spec, describe, it)
 import Test.Spec.Assertions (shouldContain, shouldEqual)
 
-spec :: Spec () Unit
+spec :: Spec Unit
 spec = do
   let runHyperdrive app =
         { request: TestRequest $ defaultRequest { body = "Bonjour" }
@@ -35,7 +35,7 @@ spec = do
 
       it "responds with the supplied headers" do
         conn <- runHyperdrive (const $ pure $ Response { status: statusOK
-                                                       , headers: StrMap.singleton "foo" "bar"
+                                                       , headers: Object.singleton "foo" "bar"
                                                        , body: mempty
                                                        })
         testHeaders conn `shouldContain` Tuple "foo" "bar"
